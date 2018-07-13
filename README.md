@@ -2,6 +2,7 @@ yii2-require-modal
 ==================
 Widget for add form in modal dialog to links.
 
+[Readme на русском:](README-RU.md)
 
 Install
 -------
