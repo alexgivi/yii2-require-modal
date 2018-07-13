@@ -15,6 +15,7 @@ RequireModal = {
         this.initCommonComponents();
         this.requireButtons = $('[data-require]');
         this.modal = $('#require-modal');
+        $('body').append(modal);
         this.form = this.modal.find('form');
         this.bindFormSubmit();
         this.bindRequireClick();
