@@ -79,18 +79,31 @@ class RequireLink extends Widget
         return $content;
     }
 
+    /**
+     * @param string               $text
+     * @param string|array         $url
+     * @param string|RequireHelper $requireItems
+     * @param string|null          $modalTitle если не указано - берется $text
+     * @param array                $options
+     *
+     * @return string
+     */
     public static function a($text, $url, $requireItems, $modalTitle = null, $options = [])
     {
         if (!$modalTitle) {
             $modalTitle = $text;
         }
 
-        return self::widget([
-            'text' => $text,
-            'url' => $url,
-            'requireFormItems' => $requireItems,
-            'requireModalTitle' => $modalTitle,
-            'options' => $options,
-        ]);
+        try {
+            return self::widget([
+                'text' => $text,
+                'url' => $url,
+                'requireFormItems' => $requireItems,
+                'requireModalTitle' => $modalTitle,
+                'options' => $options,
+            ]);
+        } catch (\Exception $e) {
+            return '';
+        }
     }
 }
