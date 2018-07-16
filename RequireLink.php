@@ -78,4 +78,19 @@ class RequireLink extends Widget
 
         return $content;
     }
+
+    public static function a($text, $url, $requireItems, $modalTitle = null, $options = [])
+    {
+        if (!$modalTitle) {
+            $modalTitle = $text;
+        }
+
+        return self::widget([
+            'text' => $text,
+            'url' => $url,
+            'requireFormItems' => $requireItems,
+            'requireModalTitle' => $modalTitle,
+            'options' => $options,
+        ]);
+    }
 }
