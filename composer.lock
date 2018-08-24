@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6b404565990565665e77e0af0e08752",
+    "content-hash": "0a40313b331efa41e0c1f158c8a5290d",
     "packages": [
         {
             "name": "bower-asset/bootstrap",
@@ -382,37 +382,28 @@
             "time": "2018-02-23T01:58:20+00:00"
         },
         {
-            "name": "ivan-chkv/yii2-jui-datepicker",
-            "version": "2.0.1",
+            "name": "pheme/yii2-jui-timepicker",
+            "version": "1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/ivan-chkv/yii2-jui-datepicker.git",
-                "reference": "3cacc05329fd61ff5bf1668d04cde9c2170bf9e7"
+                "url": "https://github.com/phemellc/yii2-jui-timepicker.git",
+                "reference": "e222c7b07e3226c4097aaf196c2c42973b88c2a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ivan-chkv/yii2-jui-datepicker/zipball/3cacc05329fd61ff5bf1668d04cde9c2170bf9e7",
-                "reference": "3cacc05329fd61ff5bf1668d04cde9c2170bf9e7",
+                "url": "https://api.github.com/repos/phemellc/yii2-jui-timepicker/zipball/e222c7b07e3226c4097aaf196c2c42973b88c2a6",
+                "reference": "e222c7b07e3226c4097aaf196c2c42973b88c2a6",
                 "shasum": ""
             },
             "require": {
-                "bower-asset/jquery-ui": "1.*",
-                "yiisoft/yii2": ">=2.0.4",
-                "yiisoft/yii2-jui": "2.*"
-            },
-            "require-dev": {
-                "ivan-chkv/yii2-phpunit": "2.*"
+                "bower-asset/jqueryui-timepicker-addon": "*",
+                "yiisoft/yii2": "*",
+                "yiisoft/yii2-jui": "*"
             },
             "type": "yii2-extension",
-            "extra": {
-                "asset-installer-paths": {
-                    "npm-asset-library": "vendor/npm",
-                    "bower-asset-library": "vendor/bower"
-                }
-            },
             "autoload": {
                 "psr-4": {
-                    "yii\\jui\\datepicker\\": ""
+                    "pheme\\jui\\": ""
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -421,78 +412,18 @@
             ],
             "authors": [
                 {
-                    "name": "Ivan Chistyakov",
-                    "email": "ivan.chkv@gmail.com"
+                    "name": "Aris Karageorgos",
+                    "email": "aris@phe.me"
                 }
             ],
-            "description": "Yii 2 jQuery UI DatePicker Widget",
-            "homepage": "http://jqueryui.com/datepicker/",
+            "description": "Adds a timepicker widget to Yii2 JUI",
             "keywords": [
-                "date",
-                "datepicker",
-                "jquery",
-                "jquery-ui",
-                "picker",
-                "yii2"
-            ],
-            "time": "2016-08-25T19:56:06+00:00"
-        },
-        {
-            "name": "ivan-chkv/yii2-jui-timepicker",
-            "version": "2.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ivan-chkv/yii2-jui-timepicker.git",
-                "reference": "691261a1b6e5a7e35c3765ad9eb3ebeef1313f71"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ivan-chkv/yii2-jui-timepicker/zipball/691261a1b6e5a7e35c3765ad9eb3ebeef1313f71",
-                "reference": "691261a1b6e5a7e35c3765ad9eb3ebeef1313f71",
-                "shasum": ""
-            },
-            "require": {
-                "bower-asset/jqueryui-timepicker-addon": "1.6.*",
-                "ivan-chkv/yii2-jui-datepicker": "2.*",
-                "yiisoft/yii2": ">=2.0.4"
-            },
-            "require-dev": {
-                "ivan-chkv/yii2-phpunit": "2.*"
-            },
-            "type": "yii2-extension",
-            "extra": {
-                "asset-installer-paths": {
-                    "npm-asset-library": "vendor/npm",
-                    "bower-asset-library": "vendor/bower"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "yii\\jui\\timepicker\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ivan Chistyakov",
-                    "email": "ivan.chkv@gmail.com"
-                }
-            ],
-            "description": "Yii 2 jQuery UI Datetime/TimePicker Widget",
-            "homepage": "http://trentrichardson.com/examples/timepicker/",
-            "keywords": [
-                "datetime",
-                "jquery",
-                "jquery-ui",
-                "picker",
-                "time",
+                "jui",
+                "pheme",
                 "timepicker",
                 "yii2"
             ],
-            "time": "2016-08-25T19:56:06+00:00"
+            "time": "2014-12-29T10:09:12+00:00"
         },
         {
             "name": "yiisoft/yii2",
