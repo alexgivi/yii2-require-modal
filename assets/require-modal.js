@@ -271,14 +271,19 @@ RequireModal = {
 
     checkBoxHtml: function (id, label, name, value, options) {
         var html = '<div class="checkbox"><label>' +
+            '<input type="hidden" name="' + name + '" value="' + (options.checked ? 1 : 0) + '">' +
             '<input id="' + id + '" type="checkbox" name="' + name + '"';
+
         if (value) {
             html += 'value="' + value + '"';
         }
+
         if (options.checked) {
             html += ' checked';
         }
+
         html += '>' + label + '</label></div> ';
+
         return html;
     },
 
@@ -346,6 +351,12 @@ RequireModal = {
                 }
             }
         }
+    },
+
+    bindCheckboxes: function () {
+        this.modal.find('input[type="checkbox"]').on('change', function () {
+            $(this).prev().val($(this).prop('checked') ? 1 : 0);
+        });
     },
 
     refreshItemsVisibility: function () {
@@ -422,6 +433,7 @@ RequireModal = {
         this.modal.find('.modal-body').html(this.generateModalBody());
         this.initCommonComponents();
         this.bindItemsVisibilityChange();
+        this.bindCheckboxes();
         this.refreshItemsVisibility();
     }
 };

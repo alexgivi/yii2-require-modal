@@ -446,8 +446,12 @@ class RequireHelper
      */
     public function addActiveCheckBox($model, $attribute, $options = null, $visible = null)
     {
+        if (empty($options['checked'])) {
+            $options['checked'] = $model->$attribute;
+        }
+
         return $this->_addField(self::FIELD_TYPE_CHECKBOX, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", $options, $model->$attribute, $visible);
+            $model->formName() . "[$attribute]", $options, 1, $visible);
     }
 
     /**
