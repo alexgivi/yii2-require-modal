@@ -215,7 +215,7 @@ RequireModal = {
 
         for (var key in options.items) {
             html += '<option value="' + key + '"';
-            if (key === value) {
+            if (key + '' === value + '') {
                 html += ' selected="selected"';
             }
             html += '>' + options.items[key] + '</option>';
@@ -260,7 +260,7 @@ RequireModal = {
                 (options.inline ? ' radio-inline" style="padding-left: 0;">' : '">') +
                 '<label><input id="' + id + '" type="radio" name="' +
                 name + '" value="' + key + '"';
-            if (value === key) {
+            if (value + '' === key + '') {
                 html += ' checked';
             }
             html += '>' + options.items[key] + '</label></div> ';
