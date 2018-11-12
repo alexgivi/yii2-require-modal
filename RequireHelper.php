@@ -2,6 +2,8 @@
 
 namespace alexgivi\requireModal;
 
+use yii\helpers\ArrayHelper;
+
 /**
  * класс для облегчения работы с require модальными окнами
  * Class RequireHelper
@@ -264,6 +266,16 @@ class RequireHelper
         ]), $value, $visible);
     }
 
+    public function addDropDownListWithPrompt($name, $label, $items, $prompt, $value = null, $required = true, $visible = null)
+    {
+        $items = ArrayHelper::merge([null => $prompt], $items);
+
+        return $this->_addField(self::FIELD_TYPE_SELECT, $label, $name, self::_filterOptions([
+            self::OPTION_REQUIRED => $required,
+            self::OPTION_ITEMS => $items,
+        ]), $value, $visible);
+    }
+
     public function addCheckBox($name, $label, $options = null, $value = null, $visible = null)
     {
         return $this->_addField(self::FIELD_TYPE_CHECKBOX, $label, $name, $options, $value, $visible);
@@ -427,6 +439,35 @@ class RequireHelper
      */
     public function addActiveDropDownList($model, $attribute, $items, $required = null, $visible = null)
     {
+        return $this->_addField(self::FIELD_TYPE_SELECT, $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]", self::_filterOptions([
+                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                self::OPTION_ITEMS => $items,
+            ]), $model->$attribute, $visible);
+    }
+
+    /**
+     * @param \yii\db\ActiveRecord $model
+     * @param string               $attribute
+     * @param array                $items
+     * @param string               $prompt
+     * @param bool|null            $required
+     * @param array|null           $visible
+     *
+     * @return RequireHelper
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function addActiveDropDownListWithPrompt(
+        $model,
+        $attribute,
+        $items,
+        $prompt,
+        $required = null,
+        $visible = null
+    ) {
+        $items = ArrayHelper::merge([null => $prompt], $items);
+
         return $this->_addField(self::FIELD_TYPE_SELECT, $model->getAttributeLabel($attribute),
             $model->formName() . "[$attribute]", self::_filterOptions([
                 self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,

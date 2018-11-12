@@ -213,7 +213,21 @@ RequireModal = {
 
         html += ' name="' + name + '">';
 
+        var promptAdded = false;
+        if (options.items.hasOwnProperty('')) {
+            html += '<option value';
+            if ('' === value + '') {
+                html += ' selected="selected"';
+            }
+            html += '>' + options.items[''] + '</option>';
+            promptAdded = true;
+        }
+
         for (var key in options.items) {
+            if (key + '' === '' && promptAdded) {
+                continue;
+            }
+
             html += '<option value="' + key + '"';
             if (key + '' === value + '') {
                 html += ' selected="selected"';
