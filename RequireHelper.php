@@ -2,6 +2,9 @@
 
 namespace alexgivi\requireModal;
 
+use JsonException;
+use yii\base\InvalidConfigException;
+use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -13,16 +16,16 @@ class RequireHelper
     // *********************** атрибуты элемента ***********************
 
     /** подпись к полю (или текст) */
-    const PARAM_LABEL = 'label';
+    protected const PARAM_LABEL = 'label';
 
     /** имя поля (имя переменной в $_POST[]) (есть не у всех типов) */
-    const PARAM_NAME = 'name';
+    protected const PARAM_NAME = 'name';
 
     /** тип поля */
-    const PARAM_TYPE = 'type';
+    protected const PARAM_TYPE = 'type';
 
     /** предустановленное значение поля - не обязательно */
-    const PARAM_VALUE = 'value';
+    protected const PARAM_VALUE = 'value';
 
     /**
      * настройки видимости поля - не обязательно
@@ -39,10 +42,10 @@ class RequireHelper
      * должно быть равно одному из переданных значений.
      * иначе элемент в форме не отображается
      */
-    const PARAM_VISIBLE = 'visible';
+    protected const PARAM_VISIBLE = 'visible';
 
     /** дополнительные параметры - не обязательно */
-    const PARAM_OPTIONS = 'options';
+    protected const PARAM_OPTIONS = 'options';
 
     // *********************** дополнительные параметры ***********************
 
@@ -50,13 +53,13 @@ class RequireHelper
      * bool
      * поле обязательно для заполнения - не обязательно
      */
-    const OPTION_REQUIRED = 'required';
+    protected const OPTION_REQUIRED = 'required';
 
     /**
      * int
      * минимальная длина текста в поле ввода тип textarea - не обязательно
      */
-    const OPTION_MIN_LENGTH = 'minlength';
+    protected const OPTION_MIN_LENGTH = 'minlength';
 
     /**
      * array
@@ -68,121 +71,134 @@ class RequireHelper
      * обязательное поле для типов select, radioList, checkBoxList
      * для других типов не учитывается
      */
-    const OPTION_ITEMS = 'items';
+    protected const OPTION_ITEMS = 'items';
 
     /**
      * int
      * размер поля выбора нескольких элементов - не обязательно
      * для типа select
      */
-    const OPTION_SIZE = 'size';
+    protected const OPTION_SIZE = 'size';
 
     /**
      * bool
      * возможность выбора нескольких элементов - не обязательно
      * для типов select, file
      */
-    const OPTION_MULTIPLE = 'multiple';
+    protected const OPTION_MULTIPLE = 'multiple';
 
     /**
      * bool
      * отображение списков горизонтально - не обязательно
      * для типов radioList, checkBoxList
      */
-    const OPTION_INLINE = 'inline';
+    protected const OPTION_INLINE = 'inline';
 
     /**
      * bool
      * выбран ли чекбокс - не обязательно
      * для типа checkbox
      */
-    const OPTION_CHECKED = 'checked';
+    protected const OPTION_CHECKED = 'checked';
 
     /**
      * int
      * минимальное значение - не обязательно
      * для типа number, date, time
      */
-    const OPTION_MIN = 'min';
+    protected const OPTION_MIN = 'min';
 
     // *********************** типы полей формы ***********************
 
     /** блок с текстом */
-    const FIELD_TYPE_DIV = 'div';
+    protected const FIELD_TYPE_DIV = 'div';
 
     /** заголовок */
-    const FIELD_TYPE_HEADER = 'header';
+    protected const FIELD_TYPE_HEADER = 'header';
 
     /** скрытое поле */
-    const FIELD_TYPE_HIDDEN = 'hidden';
+    protected const FIELD_TYPE_HIDDEN = 'hidden';
 
     /** числовое поле */
-    const FIELD_TYPE_NUMBER = 'number';
+    protected const FIELD_TYPE_NUMBER = 'number';
 
     /** текстовое поле */
-    const FIELD_TYPE_TEXT = 'text';
+    protected const FIELD_TYPE_TEXT = 'text';
 
     /** выбор даты */
-    const FIELD_TYPE_DATE = 'date';
+    protected const FIELD_TYPE_DATE = 'date';
 
     /** выбор времени */
-    const FIELD_TYPE_TIME = 'time';
+    protected const FIELD_TYPE_TIME = 'time';
 
     /** выбор даты и времени */
-    const FIELD_TYPE_DATETIME = 'datetime';
+    protected const FIELD_TYPE_DATETIME = 'datetime';
 
     /** поле ввода большого текста */
-    const FIELD_TYPE_TEXT_AREA = 'textarea';
+    protected const FIELD_TYPE_TEXT_AREA = 'textarea';
 
     /** чекбокс. можно указать опции checked, value */
-    const FIELD_TYPE_CHECKBOX = 'checkbox';
+    protected const FIELD_TYPE_CHECKBOX = 'checkbox';
 
     /**
      * выпадающий список
      * обязательно надо задать options[items]
      */
-    const FIELD_TYPE_SELECT = 'select';
+    protected const FIELD_TYPE_SELECT = 'select';
 
     /**
      * список с возможностью выбора нескольких элементов
      * обязательно надо задать options[items]
      * можно задать value в виде массива выбранных элементов
      */
-    const FIELD_TYPE_CHECKBOX_LIST = 'checkBoxList';
+    protected const FIELD_TYPE_CHECKBOX_LIST = 'checkBoxList';
 
     /**
      * список с возможностью выбора одного элемента
      * обязательно надо задать options[items]
      */
-    const FIELD_TYPE_RADIO_LIST = 'radioList';
+    protected const FIELD_TYPE_RADIO_LIST = 'radioList';
 
     /** файл. можно задать опцию multiple */
-    const FIELD_TYPE_FILE = 'file';
+    protected const FIELD_TYPE_FILE = 'file';
 
-    private $_fields = [];
+    private array $fields = [];
 
-    public static function compose()
+    public static function compose(): self
     {
         return new static();
     }
 
-    public function getRequireData()
+    /**
+     * @return string
+     * @throws JsonException
+     */
+    public function getRequireData(): string
     {
-        return json_encode($this->_fields);
+        return json_encode($this->fields, JSON_THROW_ON_ERROR);
     }
 
-    private static function _filterOptions($options)
+    protected static function filterOptions($options): ?array
     {
         if (empty($options)) {
             return null;
         }
-        return array_filter($options, function ($value) {
-            return $value !== null && $value !== false;
-        });
+        return array_filter(
+            $options,
+            static function ($value) {
+                return $value !== null && $value !== false;
+            }
+        );
     }
 
-    private function _addField($type, $label = null, $name = null, $options = null, $value = null, $visible = null)
-    {
+    protected function addField(
+        $type,
+        $label = null,
+        $name = null,
+        $options = null,
+        $value = null,
+        $visible = null
+    ): self {
         $item = [];
         if ($label) {
             $item[self::PARAM_LABEL] = $label;
@@ -208,130 +224,257 @@ class RequireHelper
             $item[self::PARAM_VISIBLE] = $visible;
         }
 
-        $this->_fields[] = $item;
+        $this->fields[] = $item;
         return $this;
     }
 
-    public function addTextField($name, $label, $value = null, $required = true, $visible = null)
+    public function addTextField($name, $label, $value = null, $required = true, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TEXT, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-        ]), $value, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_TEXT,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                ]
+            ),
+            $value,
+            $visible
+        );
     }
 
-    public function addTextArea($name, $label = 'Комментарий', $required = true, $minLength = 20, $visible = null)
+    public function addTextArea($name, $label = 'Комментарий', $required = true, $minLength = 20, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TEXT_AREA, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_MIN_LENGTH => $minLength,
-        ]), null, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_TEXT_AREA,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_MIN_LENGTH => $minLength,
+                ]
+            ),
+            null,
+            $visible
+        );
     }
 
-    public function addNumberField($name, $label, $value = null, $required = true, $min = 0)
-    {
-        return $this->_addField(self::FIELD_TYPE_NUMBER, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_MIN => $min,
-        ]), $value);
+    public function addTextAreaWithValue(
+        string $name,
+        string $label = 'Комментарий',
+        string $value = '',
+        bool $required = true,
+        $visible = null,
+        array $options = []
+    ): self {
+        $options[self::OPTION_REQUIRED] = $required;
+        return $this->addField(
+            self::FIELD_TYPE_TEXT_AREA,
+            $label,
+            $name,
+            self::filterOptions($options),
+            $value,
+            $visible
+        );
     }
 
-    public function addDateField($name, $label = 'Дата', $value = null, $required = true, $visible = null, $min = null)
+    public function addNumberField($name, $label, $value = null, $required = true, $min = 0): self
     {
-        return $this->_addField(self::FIELD_TYPE_DATE, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_MIN => $min,
-        ]), $value, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_NUMBER,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $value
+        );
     }
 
-    public function addTimeField($name, $label = 'Время', $value = null, $required = false, $min = null)
+    public function addDateField($name, $label = 'Дата', $value = null, $required = true, $visible = null, $min = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TIME, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_MIN => $min,
-        ]), $value);
+        return $this->addField(
+            self::FIELD_TYPE_DATE,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $value,
+            $visible
+        );
     }
 
-    public function addDateTimeField($name, $label, $required = false, $value = null, $visible = null)
+    public function addTimeField($name, $label = 'Время', $value = null, $required = false, $min = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_DATETIME, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-        ]), $value, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_TIME,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $value
+        );
     }
 
-    public function addDropDownList($name, $label, $items, $value = null, $required = true, $visible = null)
+    public function addDateTimeField($name, $label, $required = false, $value = null, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_SELECT, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_ITEMS => $items,
-        ]), $value, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_DATETIME,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                ]
+            ),
+            $value,
+            $visible
+        );
     }
 
-    public function addDropDownListWithPrompt($name, $label, $items, $prompt, $value = null, $required = true, $visible = null)
+    public function addDropDownList($name, $label, $items, $value = null, $required = true, $visible = null): self
     {
+        return $this->addField(
+            self::FIELD_TYPE_SELECT,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_ITEMS => $items,
+                ]
+            ),
+            $value,
+            $visible
+        );
+    }
+
+    public function addDropDownListWithPrompt(
+        $name,
+        $label,
+        $items,
+        $prompt,
+        $value = null,
+        $required = true,
+        $visible = null
+    ): self {
         $items = ArrayHelper::merge([null => $prompt], $items);
 
-        return $this->_addField(self::FIELD_TYPE_SELECT, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_ITEMS => $items,
-        ]), $value, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_SELECT,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_ITEMS => $items,
+                ]
+            ),
+            $value,
+            $visible
+        );
     }
 
-    public function addCheckBox($name, $label, $options = null, $value = null, $visible = null)
+    public function addCheckBox($name, $label, $options = null, $value = null, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_CHECKBOX, $label, $name, $options, $value, $visible);
+        return $this->addField(self::FIELD_TYPE_CHECKBOX, $label, $name, $options, $value, $visible);
     }
 
-    public function addCheckBoxList($name, $label, $items, $value = null, $required = true, $inline = true)
+    public function addCheckBoxList($name, $label, $items, $value = null, $required = true, $inline = true): self
     {
-        return $this->_addField(self::FIELD_TYPE_CHECKBOX_LIST, $label, $name, self::_filterOptions([
-            self::OPTION_ITEMS => $items,
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_INLINE => $inline,
-        ]), $value);
+        return $this->addField(
+            self::FIELD_TYPE_CHECKBOX_LIST,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_ITEMS => $items,
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_INLINE => $inline,
+                ]
+            ),
+            $value
+        );
     }
 
-    public function addRadioList($name, $label, $items, $value = null, $required = true, $inline = false)
+    public function addRadioList($name, $label, $items, $value = null, $required = true, $inline = false): self
     {
-        return $this->_addField(self::FIELD_TYPE_RADIO_LIST, $label, $name, self::_filterOptions([
-            self::OPTION_ITEMS => $items,
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_INLINE => $inline,
-        ]), $value);
+        return $this->addField(
+            self::FIELD_TYPE_RADIO_LIST,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_ITEMS => $items,
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_INLINE => $inline,
+                ]
+            ),
+            $value
+        );
     }
 
-    public function addFileField($name, $label, $multiple = true, $required = true)
+    public function addFileField($name, $label, $multiple = true, $required = true): self
     {
-        return $this->_addField(self::FIELD_TYPE_FILE, $label, $name, self::_filterOptions([
-            self::OPTION_REQUIRED => $required,
-            self::OPTION_MULTIPLE => $multiple,
-        ]));
+        return $this->addField(
+            self::FIELD_TYPE_FILE,
+            $label,
+            $name,
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required,
+                    self::OPTION_MULTIPLE => $multiple,
+                ]
+            )
+        );
     }
 
-    public function addHiddenField($name, $value = null)
+    public function addHiddenField($name, $value = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_HIDDEN, null, $name, null, $value);
+        return $this->addField(self::FIELD_TYPE_HIDDEN, null, $name, null, $value);
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param array|null $visible
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveTextField($model, $attribute, $required = null, $visible = null)
+    public function addActiveTextField($model, $attribute, $required = null, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TEXT, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_TEXT,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param int $minLength
@@ -339,38 +482,53 @@ class RequireHelper
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveTextArea($model, $attribute, $required = null, $minLength = 20, $visible = null)
+    public function addActiveTextArea($model, $attribute, $required = null, $minLength = 20, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TEXT_AREA, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_MIN_LENGTH => $minLength,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_TEXT_AREA,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_MIN_LENGTH => $minLength,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param int $min
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveNumberField($model, $attribute, $required = null, $min = 0)
+    public function addActiveNumberField($model, $attribute, $required = null, $min = 0): self
     {
-        return $this->_addField(self::FIELD_TYPE_NUMBER, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_MIN => $min,
-            ]), $model->$attribute);
+        return $this->addField(
+            self::FIELD_TYPE_NUMBER,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $model->$attribute
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param array|null $visible
@@ -378,56 +536,79 @@ class RequireHelper
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveDateField($model, $attribute, $required = null, $visible = null, $min = null)
+    public function addActiveDateField($model, $attribute, $required = null, $visible = null, $min = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_DATE, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_MIN => $min,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_DATE,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param string $min
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveTimeField($model, $attribute, $required = null, $min = null)
+    public function addActiveTimeField($model, $attribute, $required = null, $min = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_TIME, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_MIN => $min,
-            ]), $model->$attribute);
+        return $this->addField(
+            self::FIELD_TYPE_TIME,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_MIN => $min,
+                ]
+            ),
+            $model->$attribute
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool|null $required
      * @param array|null $visible
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveDateTimeField($model, $attribute, $required = null, $visible = null)
+    public function addActiveDateTimeField($model, $attribute, $required = null, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_DATETIME, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_DATETIME,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param array $items
      * @param bool|null $required
@@ -435,28 +616,36 @@ class RequireHelper
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveDropDownList($model, $attribute, $items, $required = null, $visible = null)
+    public function addActiveDropDownList($model, $attribute, $items, $required = null, $visible = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_SELECT, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_ITEMS => $items,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_SELECT,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_ITEMS => $items,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
-     * @param string               $attribute
-     * @param array                $items
-     * @param string               $prompt
-     * @param bool|null            $required
-     * @param array|null           $visible
+     * @param ActiveRecord $model
+     * @param string $attribute
+     * @param array $items
+     * @param string $prompt
+     * @param bool|null $required
+     * @param array|null $visible
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function addActiveDropDownListWithPrompt(
         $model,
@@ -465,38 +654,52 @@ class RequireHelper
         $prompt,
         $required = null,
         $visible = null
-    ) {
+    ): self {
         $items = ArrayHelper::merge([null => $prompt], $items);
 
-        return $this->_addField(self::FIELD_TYPE_SELECT, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_ITEMS => $items,
-            ]), $model->$attribute, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_SELECT,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_ITEMS => $items,
+                ]
+            ),
+            $model->$attribute,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param array|null $options
      * @param array|null $visible
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveCheckBox($model, $attribute, $options = null, $visible = null)
+    public function addActiveCheckBox($model, $attribute, $options = null, $visible = null): self
     {
         if (empty($options['checked'])) {
             $options['checked'] = $model->$attribute;
         }
 
-        return $this->_addField(self::FIELD_TYPE_CHECKBOX, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", $options, 1, $visible);
+        return $this->addField(
+            self::FIELD_TYPE_CHECKBOX,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            $options,
+            1,
+            $visible
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param array $items
      * @param bool|null $required
@@ -504,20 +707,27 @@ class RequireHelper
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveCheckBoxList($model, $attribute, $items, $required = null, $inline = true)
+    public function addActiveCheckBoxList($model, $attribute, $items, $required = null, $inline = true): self
     {
-        return $this->_addField(self::FIELD_TYPE_CHECKBOX_LIST, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute][]", self::_filterOptions([
-                self::OPTION_ITEMS => $items,
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_INLINE => $inline,
-            ]), $model->$attribute);
+        return $this->addField(
+            self::FIELD_TYPE_CHECKBOX_LIST,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute][]",
+            self::filterOptions(
+                [
+                    self::OPTION_ITEMS => $items,
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_INLINE => $inline,
+                ]
+            ),
+            $model->$attribute
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param array $items
      * @param bool|null $required
@@ -525,58 +735,76 @@ class RequireHelper
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveRadioList($model, $attribute, $items, $required = null, $inline = false)
+    public function addActiveRadioList($model, $attribute, $items, $required = null, $inline = false): self
     {
-        return $this->_addField(self::FIELD_TYPE_RADIO_LIST, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute]", self::_filterOptions([
-                self::OPTION_ITEMS => $items,
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_INLINE => $inline,
-            ]), $model->$attribute);
+        return $this->addField(
+            self::FIELD_TYPE_RADIO_LIST,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute]",
+            self::filterOptions(
+                [
+                    self::OPTION_ITEMS => $items,
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_INLINE => $inline,
+                ]
+            ),
+            $model->$attribute
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      * @param bool $multiple
      * @param bool $required
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveFileField($model, $attribute, $multiple = true, $required = null)
+    public function addActiveFileField($model, $attribute, $multiple = true, $required = null): self
     {
-        return $this->_addField(self::FIELD_TYPE_FILE, $model->getAttributeLabel($attribute),
-            $model->formName() . "[$attribute][]", self::_filterOptions([
-                self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
-                self::OPTION_MULTIPLE => $multiple,
-            ]));
+        return $this->addField(
+            self::FIELD_TYPE_FILE,
+            $model->getAttributeLabel($attribute),
+            $model->formName() . "[$attribute][]",
+            self::filterOptions(
+                [
+                    self::OPTION_REQUIRED => $required === null ? $model->isAttributeRequired($attribute) : $required,
+                    self::OPTION_MULTIPLE => $multiple,
+                ]
+            )
+        );
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
+     * @param ActiveRecord $model
      * @param string $attribute
      *
      * @return RequireHelper
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
-    public function addActiveHiddenField($model, $attribute)
+    public function addActiveHiddenField($model, $attribute): self
     {
-        return $this->_addField(self::FIELD_TYPE_HIDDEN, null,
-            $model->formName() . "[$attribute]", null, $model->$attribute);
+        return $this->addField(
+            self::FIELD_TYPE_HIDDEN,
+            null,
+            $model->formName() . "[$attribute]",
+            null,
+            $model->$attribute
+        );
     }
 
-    public function addHeader($label)
+    public function addHeader($label): self
     {
-        return $this->_addField(self::FIELD_TYPE_HEADER, $label);
+        return $this->addField(self::FIELD_TYPE_HEADER, $label);
     }
 
-    public function addDiv($label)
+    public function addDiv($label): self
     {
-        return $this->_addField(self::FIELD_TYPE_DIV, $label);
+        return $this->addField(self::FIELD_TYPE_DIV, $label);
     }
 }
